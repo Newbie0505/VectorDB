@@ -1,4 +1,5 @@
 # 🧠 VectorDB CORE
+![System Demo](demo.png)
 
 ![C++](https://img.shields.io/badge/C++-17-blue.svg?logo=c%2B%2B)
 ![Vanilla JS](https://img.shields.io/badge/Frontend-Vanilla_JS-yellow.svg?logo=javascript)

@@ -1,3 +1,5 @@
+![System Demo](Live demo. .gif)
+
 # 🧠 VectorDB CORE
 
 ![C++](https://img.shields.io/badge/C++-17-blue.svg?logo=c%2B%2B)

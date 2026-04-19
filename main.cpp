@@ -7,6 +7,7 @@
 
 #include "httplib.h"
 #include "json.hpp"
+#include "hnsw.hpp"
 
 using json = nlohmann::json;
 
@@ -77,7 +78,7 @@ std::string ask_llm(const std::string& context, const std::string& question) {
 
 // --- THE SERVER ---
 int main() {
-    KDTree db;
+    HNSW db;
     httplib::Server svr;
 
     std::cout << "Loading Database... Please wait..." << std::endl;

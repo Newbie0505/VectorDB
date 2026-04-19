@@ -10,10 +10,12 @@
 
 using json = nlohmann::json;
 
+// --- STEP 1: UPGRADE THE SCHEMA ---
 struct VectorItem {
     int id;
     std::string text;
     std::vector<float> embeddings;
+    std::string source_file; // NEW: Metadata field
 };
 
 // --- THE MATH & KD-TREE ---
@@ -80,14 +82,18 @@ int main() {
 
     std::cout << "Loading Database... Please wait..." << std::endl;
 
-    // Load our documents
-    std::vector<std::string> documents = {
-        "The company WiFi password is 'SuperSecret2026'.",
-        "The VectorDB engine was built from scratch in C++ to make searching fast.",
-        "Employee lunch break is strictly at 12:30 PM in the main cafeteria."
+    // STEP 2: PAIR TEXT WITH METADATA FILENAMES
+    std::vector<std::pair<std::string, std::string>> documents = {
+        {"wifi_policy.txt", "The company WiFi password is 'SuperSecret2026'."},
+        {"architecture.md", "The VectorDB engine was built from scratch in C++ to make searching fast."},
+        {"employee_handbook.pdf", "Employee lunch break is strictly at 12:30 PM in the main cafeteria."}
     };
+    
     int id = 1;
-    for (const auto& doc : documents) db.insert({id++, doc, get_embedding(doc)});
+    for (const auto& doc : documents) {
+        // Insert the ID, the text, the embedding, and the filename!
+        db.insert({id++, doc.second, get_embedding(doc.second), doc.first});
+    }
 
     // NEW: Listen for POST requests from our web UI
     svr.Post("/ask", [&db](const httplib::Request& req, httplib::Response& res) {
@@ -100,10 +106,12 @@ int main() {
         VectorItem matching_doc = db.search(query_vector);
         std::string ai_answer = ask_llm(matching_doc.text, question);
 
-        // Send the answer AND the context back to the UI
+        // STEP 3: SEND THE METADATA BACK TO THE UI
         json response;
         response["answer"] = ai_answer;
         response["context"] = matching_doc.text;
+        response["source_file"] = matching_doc.source_file; // The UI can now display this!
+        
         res.set_content(response.dump(), "application/json"); 
     });
 

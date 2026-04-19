@@ -57,7 +57,52 @@ public:
     }
 
     VectorItem search(const std::vector<float>& query) {
-        // TODO: The layer-by-layer drop-down search
+       private:
+    // Helper to calculate Euclidean Distance
+    float get_distance(const std::vector<float>& a, const std::vector<float>& b) {
+        float sum = 0.0f;
+        for (size_t i = 0; i < a.size(); ++i) {
+            sum += (a[i] - b[i]) * (a[i] - b[i]);
+        }
+        return std::sqrt(sum);
+    }
+
+public:
+    VectorItem search(const std::vector<float>& query) {
+        if (entry_point == nullptr) {
+            return {}; // The database is empty
+        }
+
+        HNSWNode* current_node = entry_point;
+        float current_dist = get_distance(current_node->item.embeddings, query);
+
+        // Traverse from the absolute top layer down to the bottom layer
+        for (int current_layer = max_layer; current_layer >= 0; --current_layer) {
+            
+            bool moved_closer = true;
+            
+            // Greedily hop to the closest neighbor on THIS layer
+            while (moved_closer) {
+                moved_closer = false;
+                
+                for (HNSWNode* neighbor : current_node->neighbors_by_layer[current_layer]) {
+                    float dist = get_distance(neighbor->item.embeddings, query);
+                    
+                    // If we found a closer node, move to it and keep searching
+                    if (dist < current_dist) {
+                        current_dist = dist;
+                        current_node = neighbor;
+                        moved_closer = true; 
+                    }
+                }
+            }
+            // When we can't get any closer on this layer, the loop breaks, 
+            // and the outer 'for' loop drops us down to the next layer!
+        }
+
+        // Once we finish Layer 0, current_node is our nearest neighbor
+        return current_node->item;
+    }
         return {}; 
     }
 };
